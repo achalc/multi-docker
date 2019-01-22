@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t achalmulesoft/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run achalmulesoft/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t achalmulesoft/multi-client ./client
+  - docker build -t achalmulesoft/multi-nginx ./nginx
+  - docker build -t achalmulesoft/multi-server ./server
+  - docker build -t achalmulesoft/multi-worker ./worker
+  # login to the docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push achalmulesoft/multi-client
+  - docker push achalmulesoft/multi-nginx
+  - docker push achalmulesoft/multi-server
+  - docker push achalmulesoft/multi-worker
